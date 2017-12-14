@@ -1,0 +1,6 @@
+video {
+    width: 160px;
+}
+.local-video {
+    transform: scale(-1, 1);
+}

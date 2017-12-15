@@ -1,4 +1,4 @@
-const body = document.getElementsByTagName('body')[0];
+const audioCxt = new AudioContext();
 
 function newPeer() {
     return new Promise((resolve, reject) => {
@@ -12,29 +12,37 @@ function newPeer() {
     });
 }
 
-function addVideo(id, stream, className, muted) {
-    const video = document.createElement('video');
-    video.id = id;
-    video.srcObject = stream;
-    video.className = className;
-    video.muted = muted;
-    video.autoplay = true;
-    body.appendChild(video);
+function playAudio(stream) {
+    function getAudioSource(stream) {
+        return new Promise((resolve, reject) => {
+            if (navigator.userAgent.search(/Chrome/) !== -1) {
+                const audio = new Audio();
+                audio.srcObject = stream;
+                audio.addEventListener('loadedmetadata', () => {
+                    resolve(audioCxt.createMediaStreamSource(audio.srcObject));
+                });
+            }
+            resolve(audioCxt.createMediaStreamSource(stream));
+        });
+    }
+
+    getAudioSource(stream)
+        .then(source => {
+            source.connect(audioCxt.destination);
+        });
 }
 
 Promise.all([
     newPeer(),
-    navigator.mediaDevices.getUserMedia({ audio: true, video: true })
+    navigator.mediaDevices.getUserMedia({ audio: true, video: false })
 ]).then(values => {
     const peer = values[0];
     const localStream = values[1];
-    addVideo('local-video', localStream, 'local-video', true);
-    const room = peer.joinRoom('parallel', { mode: 'mesh', localStream });
+    const room = peer.joinRoom('parallel', { mode: 'mesh', stream: localStream });
     room.on('stream', remoteStream => {
-        addVideo(stream.peerId, remoteStream, 'remote-video', false);
+        playAudio(remoteStream);
     });
     room.on('peerLeave', remotePeerId => {
-        body.removeChild(document.getElementById(remotePeerId));
     });
 }).catch(error => {
     console.error(error);

@@ -1,6 +1,6 @@
 class CreateStreamWithPing {
     constructor(audioCxt, source) {
-        const frequency = 12000;
+        const frequency = 16000;
         const intervalMillisec = 5000;
         const durationMillisec = 100;
 
@@ -45,7 +45,7 @@ class CreateStreamWithPing {
 
 class PingDetector {
     constructor(audioCxt, source, destination) {
-        const frequency = 12000;
+        const frequency = 16000;
         const intervalMillisec = 100;
         const threshold = 1;
         const gFilter = createGoertzelFilter(audioCxt, frequency);

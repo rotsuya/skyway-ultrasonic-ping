@@ -59,10 +59,10 @@ Promise.all([
     });
 
     room.on('data', (data) => {
-        console.log(from, '->', to);
         const from = data.data[0];
         const to = data.data[1];
         const time = data.data[2];
+        console.log(from, '->', to);
         drawTable(from, to, time);
     })
 }).catch(error => {

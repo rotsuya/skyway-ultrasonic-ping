@@ -7,7 +7,7 @@ video {
 
 .live.status {
     transition-property: color;
-    transition-duration: 10s;
+    transition-duration: 6s;
     transition-timing-function: liner;
     color: #fff;
 }

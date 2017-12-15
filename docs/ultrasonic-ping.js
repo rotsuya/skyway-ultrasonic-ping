@@ -1,7 +1,7 @@
 class CreateStreamWithPing {
     constructor(audioCxt, source) {
         const frequency = 12000;
-        const intervalMillisec = 3000;
+        const intervalMillisec = 5000;
         const durationMillisec = 100;
 
         const oscillator = audioCxt.createOscillator();

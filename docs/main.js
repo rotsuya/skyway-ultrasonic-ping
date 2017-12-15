@@ -44,41 +44,52 @@ Promise.all([
             .then(source => {
                 window.pingDetector = new PingDetector(audioCxt, source, audioCxt.destination);
                 pingDetector.on('ping', level => {
-                    console.log('receive ping from', remoteStream.peerId, 'to', peer.id, 'at', Date.now(), 'in level', level);
-                    const key = remoteStream.peerId + '-' + peer.id;
-                    let status;
-                    if (log[key]) {
-                        console.info(key);
-                        status = document.querySelector('#' + key + ' .status');
-                    } else {
-                        const from = document.createElement('td');
-                        from.textContent = remoteStream.peerId;
-                        from.className = 'from';
-                        const to = document.createElement('td');
-                        to.textContent = peer.id;
-                        to.className = 'to';
-                        status = document.createElement('td');
-                        status.textContent = 'live';
-                        status.className = 'status live';
-                        const tr = document.createElement('tr');
-                        tr.id = key;
-                        tr.appendChild(from);
-                        tr.appendChild(to);
-                        tr.appendChild(status);
-                        document.getElementById('tbody').appendChild(tr);
-                    }
-                    console.log(status);
-                    status.classList.remove('live');
-                    setTimeout(() => {
-                        status.classList.add('live');
-                    }, 100);
-                    log[key] = Date.now();
+                    // console.log('receive ping from', remoteStream.peerId, 'to', peer.id, 'at', Date.now(), 'in level', level);
+                    room.send([remoteStream.peerId, peer.id, Date.now()]);
+                    drawTable(remoteStream.peerId, peer.id, Date.now());
                 });
                 pingDetector.start();
             });
     });
     room.on('peerLeave', remotePeerId => {
     });
+
+    room.on('data', (data) => {
+        console.log(data.data);
+        const from = data.data[0];
+        const to = data.data[1];
+        const time = data.data[2];
+        drawTable(from, to, time);
+    })
 }).catch(error => {
     console.error(error);
 });
+
+function drawTable(from, to, time) {
+    const key = from + '-' + to;
+    let tdStatus;
+    if (log[key]) {
+        tdStatus = document.querySelector('#tr-' + key + ' .status');
+    } else {
+        const tdFrom = document.createElement('td');
+        tdFrom.textContent = from;
+        tdFrom.className = 'from';
+        const tdTo = document.createElement('td');
+        tdTo.textContent = to;
+        tdTo.className = 'to';
+        tdStatus = document.createElement('td');
+        tdStatus.textContent = 'live';
+        tdStatus.className = 'status live';
+        const tr = document.createElement('tr');
+        tr.id = 'tr-' + key;
+        tr.appendChild(tdFrom);
+        tr.appendChild(tdTo);
+        tr.appendChild(tdStatus);
+        document.getElementById('tbody').appendChild(tr);
+    }
+    tdStatus.classList.remove('live');
+    setTimeout(() => {
+        tdStatus.classList.add('live');
+    }, 100);
+    log[key] = time;
+}

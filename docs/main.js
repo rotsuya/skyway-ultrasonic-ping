@@ -1,3 +1,5 @@
+import { CreateStreamWithPing, DetectorPing } from './ultrasonic-ping.js';
+
 const audioCxt = new AudioContext();
 
 function newPeer() {
@@ -12,25 +14,6 @@ function newPeer() {
     });
 }
 
-function playAudio(stream) {
-    function getAudioSource(stream) {
-        return new Promise((resolve, reject) => {
-            if (navigator.userAgent.search(/Chrome/) !== -1) {
-                const audio = new Audio();
-                audio.srcObject = stream;
-                audio.addEventListener('loadedmetadata', () => {
-                    resolve(audioCxt.createMediaStreamSource(audio.srcObject));
-                });
-            }
-            resolve(audioCxt.createMediaStreamSource(stream));
-        });
-    }
-
-    getAudioSource(stream)
-        .then(source => {
-            source.connect(audioCxt.destination);
-        });
-}
 
 Promise.all([
     newPeer(),
@@ -38,9 +21,27 @@ Promise.all([
 ]).then(values => {
     const peer = values[0];
     const localStream = values[1];
-    const room = peer.joinRoom('parallel', { mode: 'mesh', stream: localStream });
+    const createStreamWithPing = new CreateStreamWithPing(audioCxt, localStream);
+    const room = peer.joinRoom('parallel', { mode: 'mesh', stream: createStreamWithPing.stream });
     room.on('stream', remoteStream => {
-        playAudio(remoteStream);
+        function getAudioSource(stream) {
+            return new Promise((resolve, reject) => {
+                if (navigator.userAgent.search(/Chrome/) !== -1) {
+                    const audio = new Audio();
+                    audio.srcObject = stream;
+                    audio.addEventListener('loadedmetadata', () => {
+                        resolve(audioCxt.createMediaStreamSource(audio.srcObject));
+                    });
+                }
+                resolve(audioCxt.createMediaStreamSource(stream));
+            });
+        }
+
+        getAudioSource(remoteStream)
+            .then(source => {
+                //source.connect(audioCxt.destination);
+                window.detectorPing = new DetectorPing(audioCxt, source);
+            });
     });
     room.on('peerLeave', remotePeerId => {
     });

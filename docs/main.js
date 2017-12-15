@@ -45,8 +45,12 @@ Promise.all([
                 window.pingDetector = new PingDetector(audioCxt, source, audioCxt.destination);
                 pingDetector.on('ping', level => {
                     // console.log('receive ping from', remoteStream.peerId, 'to', peer.id, 'at', Date.now(), 'in level', level);
-                    room.send([remoteStream.peerId, peer.id, Date.now()]);
-                    drawTable(remoteStream.peerId, peer.id, Date.now());
+                    const from = remoteStream.peerId;
+                    const to = peer.id;
+                    const time = Date.now();
+                    room.send([from, to, time]);
+                    drawTable(from, to, time);
+                    console.log(from, '->', peer.id, 'at', time);
                 });
                 pingDetector.start();
             });
@@ -55,7 +59,7 @@ Promise.all([
     });
 
     room.on('data', (data) => {
-        console.log(data.data);
+        console.log(from, '->', to);
         const from = data.data[0];
         const to = data.data[1];
         const time = data.data[2];

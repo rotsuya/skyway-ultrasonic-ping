@@ -50,7 +50,6 @@ Promise.all([
                     const time = Date.now();
                     room.send([from, to, time]);
                     drawTable(from, to, time);
-                    console.log(from, '->', peer.id, 'at', time);
                 });
                 pingDetector.start();
             });
@@ -62,7 +61,6 @@ Promise.all([
         const from = data.data[0];
         const to = data.data[1];
         const time = data.data[2];
-        console.log(from, '->', to);
         drawTable(from, to, time);
     })
 }).catch(error => {
@@ -91,6 +89,7 @@ function drawTable(from, to, time) {
         tr.appendChild(tdStatus);
         document.getElementById('tbody').appendChild(tr);
     }
+    console.log(from, '->', to, 'at', time);
     tdStatus.classList.remove('live');
     setTimeout(() => {
         tdStatus.classList.add('live');

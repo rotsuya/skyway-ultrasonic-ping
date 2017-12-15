@@ -4,3 +4,10 @@ video {
 .local-video {
     transform: scale(-1, 1);
 }
+
+.live.status {
+    transition-property: color;
+    transition-duration: 10s;
+    transition-timing-function: liner;
+    color: #fff;
+}

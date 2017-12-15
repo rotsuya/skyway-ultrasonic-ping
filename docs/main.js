@@ -1,6 +1,7 @@
-import { CreateStreamWithPing, DetectorPing } from './ultrasonic-ping.js';
+import { CreateStreamWithPing, PingDetector } from './ultrasonic-ping.js';
 
 const audioCxt = new AudioContext();
+window.log = {};
 
 function newPeer() {
     return new Promise((resolve, reject) => {
@@ -21,7 +22,9 @@ Promise.all([
 ]).then(values => {
     const peer = values[0];
     const localStream = values[1];
-    const createStreamWithPing = new CreateStreamWithPing(audioCxt, localStream);
+    const localSource = audioCxt.createMediaStreamSource(localStream);
+    const createStreamWithPing = new CreateStreamWithPing(audioCxt, localSource);
+    createStreamWithPing.start();
     const room = peer.joinRoom('parallel', { mode: 'mesh', stream: createStreamWithPing.stream });
     room.on('stream', remoteStream => {
         function getAudioSource(stream) {
@@ -39,8 +42,39 @@ Promise.all([
 
         getAudioSource(remoteStream)
             .then(source => {
-                //source.connect(audioCxt.destination);
-                window.detectorPing = new DetectorPing(audioCxt, source);
+                window.pingDetector = new PingDetector(audioCxt, source, audioCxt.destination);
+                pingDetector.on('ping', level => {
+                    console.log('receive ping from', remoteStream.peerId, 'to', peer.id, 'at', Date.now(), 'in level', level);
+                    const key = remoteStream.peerId + '-' + peer.id;
+                    let status;
+                    if (log[key]) {
+                        console.info(key);
+                        status = document.querySelector('#' + key + ' .status');
+                    } else {
+                        const from = document.createElement('td');
+                        from.textContent = remoteStream.peerId;
+                        from.className = 'from';
+                        const to = document.createElement('td');
+                        to.textContent = peer.id;
+                        to.className = 'to';
+                        status = document.createElement('td');
+                        status.textContent = 'live';
+                        status.className = 'status live';
+                        const tr = document.createElement('tr');
+                        tr.id = key;
+                        tr.appendChild(from);
+                        tr.appendChild(to);
+                        tr.appendChild(status);
+                        document.getElementById('tbody').appendChild(tr);
+                    }
+                    console.log(status);
+                    status.classList.remove('live');
+                    setTimeout(() => {
+                        status.classList.add('live');
+                    }, 100);
+                    log[key] = Date.now();
+                });
+                pingDetector.start();
             });
     });
     room.on('peerLeave', remotePeerId => {

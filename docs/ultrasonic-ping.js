@@ -1,8 +1,8 @@
 class CreateStreamWithPing {
-    constructor(audioCxt, stream) {
-        const frequency = 440;
-
-        const source = audioCxt.createMediaStreamSource(stream);
+    constructor(audioCxt, source) {
+        const frequency = 12000;
+        const intervalMillisec = 3000;
+        const durationMillisec = 100;
 
         const oscillator = audioCxt.createOscillator();
         oscillator.type = 'square';
@@ -10,7 +10,7 @@ class CreateStreamWithPing {
         oscillator.start();
 
         const gainNode = audioCxt.createGain();
-        gainNode.gain.value = 1;
+        gainNode.gain.value = 0;
 
         const destination = audioCxt.createMediaStreamDestination();
 
@@ -19,6 +19,8 @@ class CreateStreamWithPing {
         gainNode.connect(destination);
         const outputStream = destination.stream;
 
+        this.intervalMillisec = intervalMillisec;
+        this.durationMillisec = durationMillisec;
         this.gainNode = gainNode;
         this.stream = outputStream;
     }
@@ -30,20 +32,57 @@ class CreateStreamWithPing {
     turnOff() {
         this.gainNode.gain.value = 0;
     }
+
+    start() {
+        setInterval(() => {
+            this.turnOn();
+            setTimeout(() => {
+                this.turnOff();
+            }, this.durationMillisec);
+        }, this.intervalMillisec);
+    }
 }
 
-class DetectorPing {
-    constructor(audioCxt, source) {
-        const frequency = 440;
+class PingDetector {
+    constructor(audioCxt, source, destination) {
+        const frequency = 12000;
+        const intervalMillisec = 100;
+        const threshold = 1;
         const gFilter = createGoertzelFilter(audioCxt, frequency);
-        gFilter.setFreq(440);
-        source.connect(gFilter);
+        const analyser = audioCxt.createAnalyser();
+        const events = {};
 
-        this.res = gFilter.res;
+        source.connect(gFilter);
+        gFilter.connect(analyser);
+
+        this.gFilter = gFilter;
+        this.events = [];
+        this.threshold = threshold;
+        this.intervalMillisec = intervalMillisec;
+
+        const lowpassFilter = audioCxt.createBiquadFilter();
+        lowpassFilter.type = 'lowpass';
+        lowpassFilter.frequency.value = frequency * 0.95;
+
+        source.connect(lowpassFilter);
+        lowpassFilter.connect(destination);
     }
 
     getLevel() {
-        return this.res;
+        return this.gFilter.res;
+    }
+
+    on(type, callback) {
+        this.events[type] = callback;
+    }
+
+    start() {
+        setInterval(() => {
+            const level = this.getLevel();
+            if (level > this.threshold) {
+                this.events['ping'](level);
+            }
+        }, this.intervalMillisec);
     }
 }
 
@@ -80,8 +119,7 @@ function createGoertzelFilter(context, freq) {
             XKi = s1 * this.wi,
             res = (XKr*XKr + XKi*XKi) / N;
 
-        this.res = res;
-        console.log(res);
+        g.res = res;
     };
 
     g.setFreq = function(newFreq) {
@@ -99,4 +137,4 @@ function createGoertzelFilter(context, freq) {
 }
 
 
-export { CreateStreamWithPing, DetectorPing };
+export { CreateStreamWithPing, PingDetector };

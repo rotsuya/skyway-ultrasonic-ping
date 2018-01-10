@@ -57,7 +57,7 @@ class PingDetector {
 
         const lowpassFilter = audioCxt.createBiquadFilter();
         lowpassFilter.type = 'lowpass';
-        lowpassFilter.frequency.value = frequency * 0.95;
+        lowpassFilter.frequency.value = frequency * 0.90;
 
         source.connect(lowpassFilter);
         lowpassFilter.connect(destination);

@@ -117,10 +117,9 @@ function updateLineStyle(peerIdFrom, peerIdTo, event, peerIds) {
 
 }
 
-
 const svg = document.getElementById('svg');
 const cr = 10;
-const r = 200;
+const r = 180;
 const width = 640;
 const height = 640;
 const spacing = 20;

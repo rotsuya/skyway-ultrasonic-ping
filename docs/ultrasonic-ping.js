@@ -3,7 +3,7 @@ class CreateStreamWithPing {
         const frequency = 18000;
         this.intervalMillisec = 3000;
         this.durationMillisec = 100;
-        this.gain = 0.1;
+        this.gain = 0.2;
 
         const oscillator = audioCxt.createOscillator();
         oscillator.type = 'square';
@@ -43,7 +43,7 @@ class PingDetector {
     constructor(audioCxt, source, destination) {
         const frequency = 18000;
         this.events = [];
-        this.threshold = 0.5;
+        this.threshold = 0.1;
         this.intervalMillisec = 3000;
         this.durationMillisec = 100;
         this.noPingCounter = 0;

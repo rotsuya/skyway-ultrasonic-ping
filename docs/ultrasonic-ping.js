@@ -109,22 +109,22 @@ function createGoertzelFilter(context, freq) {
             s1 = 0,
             s2 = 0;
 
-        for (var n = 0; n < N; n+=2) {
+        for (var n = 0; n < N; n += 2) {
             s2 = inp[n] + coeff * s1 - s2;
             s1 = inp[n+1] + coeff * s2 - s1;
         }
 
         var
-            XKr = s1 * this.wr - s2,
-            XKi = s1 * this.wi,
-            res = (XKr*XKr + XKi*XKi) / N;
+            XKr = s1 * g.wr - s2,
+            XKi = s1 * g.wi,
+            res = (XKr * XKr + XKi * XKi) / N;
 
         g.res = res;
     };
 
     g.setFreq = function(newFreq) {
         freq = newFreq;
-        w = 2*Math.PI * freq / context.sampleRate;
+        w = 2 * Math.PI * freq / context.sampleRate;
         wr = Math.cos(w);
         wi = Math.sin(w);
         coeff = 2 * wr;

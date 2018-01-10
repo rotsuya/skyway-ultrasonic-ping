@@ -12,3 +12,31 @@ video {
     color: #fff;
     font-weight: bold;
 }
+.circle {
+    fill: #ccc;
+}
+#circle-0 {
+    fill: #444;
+}
+.line {
+    stroke: #444;
+    stroke-width: 3;
+    fill: none;
+    stroke-dasharray: 5 15;
+    stroke-dashoffset: 0;
+    stroke-linecap: round;
+    animation: dash 0.2s linear infinite;
+}
+@keyframes dash {
+    to {
+        stroke-dashoffset: 20;
+    }
+}
+text {
+    font-size: 14px;
+    font-family: sans-serif;
+}
+.stopped {
+    stroke: #f00;
+    animation: none;
+}

@@ -33,7 +33,6 @@ Promise.all([
     room.on('stream', remoteStream => {
         window.remotePeerIds.push(remoteStream.peerId);
         drawSVG(window.remotePeerIds.length, window.remotePeerIds.length + 1, [window.localPeerId].concat(window.remotePeerIds));
-        console.log(window.remotePeerIds.length, window.remotePeerIds.length + 1);
         function getAudioSource(stream) {
             return new Promise((resolve, reject) => {
                 if (navigator.userAgent.search(/Chrome/) !== -1) {
@@ -54,16 +53,19 @@ Promise.all([
                 const to = peer.id;
                 pingDetectors[remoteStream.peerId] = pingDetector;
                 pingDetector.on('ping', level => {
+                    const time = Date.now();
+                    console.log('ping', from, to);
+                    room.send(['ping', from, to, time]);
                 });
                 pingDetector.on('disconnected', () => {
                     const time = Date.now();
-                    console.log('disconnected', from, to, time);
+                    console.info('disconnected', from, to);
                     updateLineStyle(from, to, 'disconnected', [window.localPeerId].concat(window.remotePeerIds));
                     room.send(['disconnected', from, to, time]);
                 });
                 pingDetector.on('connected', () => {
                     const time = Date.now();
-                    console.log('connected', from, to, time);
+                    console.info('connected', from, to);
                     updateLineStyle(from, to, 'connected', [window.localPeerId].concat(window.remotePeerIds));
                     room.send(['connected', from, to, time]);
                 });
@@ -75,7 +77,6 @@ Promise.all([
         pingDetectors[remotePeerId].stop();
         window.remotePeerIds.splice(window.remotePeerIds.indexOf(remotePeerId), 1);
         drawSVG(window.remotePeerIds.length + 2, window.remotePeerIds.length + 1, [window.localPeerId].concat(window.remotePeerIds));
-        console.log(window.remotePeerIds.length + 2, window.remotePeerIds.length + 1);
     });
 
     room.on('data', (data) => {
@@ -83,8 +84,19 @@ Promise.all([
         const from = data.data[1];
         const to = data.data[2];
         const time = data.data[3];
-        console.log(event, from, to, time);
-        updateLineStyle(from, to, event, [window.localPeerId].concat(window.remotePeerIds));
+        switch (event) {
+            case 'disconnected':
+                console.info(event, from, to);
+                updateLineStyle(from, to, event, [window.localPeerId].concat(window.remotePeerIds));
+                break;
+            case 'connected':
+                console.info(event, from, to);
+                updateLineStyle(from, to, event, [window.localPeerId].concat(window.remotePeerIds));
+                break;
+            case 'ping':
+                console.log(event, from, to);
+                break;
+        }
     })
 }).catch(error => {
     console.error(error);
@@ -173,7 +185,7 @@ function drawLines(numberOfPeers) {
             const offsetX = spacing * .5 * Math.cos(angle + Math.PI * .5);
             const offsetY = -spacing * .5 * Math.sin(angle + Math.PI * .5);
             appendElement('path', {
-                class: 'line',
+                class: 'line stopped',
                 id: 'line-' + i + '-' + j,
                 d: 'M ' + coordinates[i][0] + ',' + coordinates[i][1]
                 + ' Q ' + (medianX + offsetX) + ',' + (medianY + offsetY)

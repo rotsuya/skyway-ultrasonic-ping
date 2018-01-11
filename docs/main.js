@@ -55,6 +55,7 @@ Promise.all([
                 pingDetector.on('ping', level => {
                     const time = Date.now();
                     console.log('ping', from, to);
+                    updateLineStyle(from, to, 'ping', [window.localPeerId].concat(window.remotePeerIds));
                     room.send(['ping', from, to, time]);
                 });
                 pingDetector.on('disconnected', () => {

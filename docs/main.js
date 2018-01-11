@@ -84,14 +84,13 @@ Promise.all([
         const from = data.data[1];
         const to = data.data[2];
         const time = data.data[3];
+        updateLineStyle(from, to, event, [window.localPeerId].concat(window.remotePeerIds));
         switch (event) {
             case 'disconnected':
                 console.info(event, from, to);
-                updateLineStyle(from, to, event, [window.localPeerId].concat(window.remotePeerIds));
                 break;
             case 'connected':
                 console.info(event, from, to);
-                updateLineStyle(from, to, event, [window.localPeerId].concat(window.remotePeerIds));
                 break;
             case 'ping':
                 console.log(event, from, to);
@@ -121,6 +120,7 @@ function updateLineStyle(peerIdFrom, peerIdTo, event, peerIds) {
             line.classList.add('stopped');
             break;
         case 'connected':
+        case 'ping':
             if (line.classList.contains('stopped')) {
                 line.classList.remove('stopped');
             }
